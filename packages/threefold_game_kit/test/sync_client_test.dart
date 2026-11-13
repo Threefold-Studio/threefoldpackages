@@ -170,4 +170,17 @@ void main() {
     expect(t.bodies.last['delta'], {'coins': 200});
     expect(c.acknowledged, {'coins': 200});
   });
+
+  test('a reset during a sync is not undone when that sync answers',
+      () async {
+    final t = FakeTransport((_) => {})..gate = Completer<void>();
+    final c =
+        SyncClient(transport: t, clock: clock, store: MemoryKeyValueStore());
+    final pending = c.sync(progress: {}, counters: {'level': 100});
+    await c.resetAcknowledged();
+    t.gate!.complete();
+    expect((await pending).ok, isTrue);
+    expect(c.acknowledged, isEmpty);
+    expect(c.deltaFor({'level': 5}), {'level': 5});
+  });
 }

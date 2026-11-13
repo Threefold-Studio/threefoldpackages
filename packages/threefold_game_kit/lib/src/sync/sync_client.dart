@@ -120,6 +120,10 @@ class SyncClient {
   Map<String, num>? _ackedCache;
   Future<SyncResult>? _inFlight;
 
+  /// Raised by [resetAcknowledged]; a request started before a reset never
+  /// acknowledges its counters.
+  int _ackEpoch = 0;
+
   /// Counters the server has acknowledged.
   Map<String, num> get acknowledged {
     final cached = _ackedCache;
@@ -174,6 +178,7 @@ class SyncClient {
     Map<String, dynamic> extra,
   ) async {
     final sent = Map<String, num>.of(counters);
+    final epoch = _ackEpoch;
     final body = <String, dynamic>{
       ...extra,
       'progress': progress,
@@ -193,7 +198,9 @@ class SyncClient {
     }
     // Fetch mode is read-only on the server, so the totals were not
     // applied and must still be sent as a delta next time.
-    if (sent.isNotEmpty && mode != SyncMode.fetch) await _ack(sent);
+    if (sent.isNotEmpty && mode != SyncMode.fetch && epoch == _ackEpoch) {
+      await _ack(sent);
+    }
     final p = res['progress'];
     return SyncResult(
       ok: true,
@@ -213,7 +220,9 @@ class SyncClient {
 
   /// Forgets the acknowledged counters (after sign in to another account or
   /// a progress reset), so the next delta is the full total.
+  /// A request still waiting for its answer will not acknowledge afterwards.
   Future<void> resetAcknowledged() async {
+    _ackEpoch++;
     _ackedCache = <String, num>{};
     await _store?.remove(ackKey);
   }
