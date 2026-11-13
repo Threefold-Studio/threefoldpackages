@@ -57,11 +57,13 @@ class PlaceTime {
   bool get usedFallback => requestedZone.trim() != _loc.name;
 
   /// An instant as plain wall clock fields at the place, for display, pickers
-  /// and guards. The result is a local DateTime carrying the place's fields;
-  /// do not treat it as an instant.
+  /// and guards. The fields ride in a `DateTime.utc` only because UTC has no
+  /// daylight saving gap, so the device's own zone can never shift them (a
+  /// phone in New York cannot hold a local 2:30 AM on March 8). Read the
+  /// fields; never treat the result as an instant or call `toLocal` on it.
   DateTime toWall(DateTime instant) {
     final z = tz.TZDateTime.from(instant.toUtc(), _loc);
-    return DateTime(z.year, z.month, z.day, z.hour, z.minute, z.second);
+    return DateTime.utc(z.year, z.month, z.day, z.hour, z.minute, z.second);
   }
 
   /// Wall clock fields typed at the place, as the real UTC instant. Reads
@@ -81,8 +83,8 @@ class PlaceTime {
   /// A calendar date plus minutes past midnight at the place (free text
   /// times from a form, R9.1), as the real UTC instant.
   DateTime fromDateAndMinutes(CalendarDate date, int minutesPastMidnight) =>
-      fromWall(
-          DateTime(date.year, date.month, date.day, 0, minutesPastMidnight));
+      fromWall(DateTime.utc(
+          date.year, date.month, date.day, 0, minutesPastMidnight));
 
   /// The place's calendar day for an instant.
   CalendarDate dayOf(DateTime instant) =>
@@ -111,7 +113,7 @@ class PlaceTime {
   /// cutoff for "what is coming up" (never `now`, or today's all-day closure
   /// vanishes at 12:01 AM).
   DateTime startOfDayUtc(CalendarDate day) =>
-      fromWall(DateTime(day.year, day.month, day.day));
+      fromWall(DateTime.utc(day.year, day.month, day.day));
 
   /// The short zone label at [instant] ("EST", "EDT").
   String abbreviation(DateTime instant) =>

@@ -206,6 +206,21 @@ void main() {
       expect(ny.toWall(out).hour, 3);
     });
 
+    test('the device zone never shifts place fields (device DST gap)', () {
+      // 2:30 AM on March 8, 2026 does not exist in New York but does in UTC.
+      // Run with TZ=America/New_York to exercise a device in that zone.
+      final utcPlace = PlaceTime('Etc/UTC');
+      expect(utcPlace.usedFallback, isFalse);
+      final instant = DateTime.utc(2026, 3, 8, 2, 30);
+      final wall = utcPlace.toWall(instant);
+      expect([wall.hour, wall.minute], [2, 30]);
+      expect(utcPlace.fromWall(wall), instant);
+      expect(
+          utcPlace.fromDateAndMinutes(CalendarDate(2026, 3, 8), 150), instant);
+      expect(utcPlace.startOfDayUtc(CalendarDate(2026, 3, 8)),
+          DateTime.utc(2026, 3, 8));
+    });
+
     test('wall fields ignore the zone the picker claims', () {
       expect(ny.fromWall(DateTime.utc(2026, 11, 12, 18, 30)),
           ny.fromWall(DateTime(2026, 11, 12, 18, 30)));
@@ -221,7 +236,7 @@ void main() {
       // 11:30 PM in New York on Nov 12 is already Nov 13 in UTC.
       DateTime late() => DateTime.utc(2026, 11, 13, 4, 30);
       expect(ny.today(clockNow: late), const CalendarDate(2026, 11, 12));
-      expect(ny.now(clockNow: late), DateTime(2026, 11, 12, 23, 30));
+      expect(ny.now(clockNow: late), DateTime.utc(2026, 11, 12, 23, 30));
       expect(ny.hasPassed(const CalendarDate(2026, 11, 12), clockNow: late),
           isFalse);
       expect(ny.hasPassed(const CalendarDate(2026, 11, 11), clockNow: late),
