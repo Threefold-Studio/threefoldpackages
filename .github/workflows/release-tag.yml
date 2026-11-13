@@ -1,0 +1,35 @@
+# Publishes v<RELEASE_VERSION> after a merge to main when that tag does not
+# exist yet, so nobody tags by hand (chat sessions cannot push tags). Apps pin
+# these tags (CLAUDE.md rule 3). Raise RELEASE_VERSION and every package's
+# pubspec version together in the pull request that releases them.
+name: Release tag
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+concurrency: { group: release-tag, cancel-in-progress: false }
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Tag a new version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ver=$(tr -d '[:space:]' < RELEASE_VERSION)
+          [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "RELEASE_VERSION must be X.Y.Z" >&2; exit 1; }
+          for p in packages/*/pubspec.yaml; do
+            got=$(sed -nE 's/^version:[[:space:]]*([^[:space:]]+).*/\1/p' "$p")
+            [ "$got" = "$ver" ] || { echo "$p is $got, RELEASE_VERSION is $ver" >&2; exit 1; }
+          done
+          v="v$ver"
+          if git rev-parse -q --verify "refs/tags/$v" >/dev/null; then
+            echo "$v already exists; a released tag never moves."
+            exit 0
+          fi
+          gh release create "$v" --target "$GITHUB_SHA" --title "$v" \
+            --notes "threefold_kit, threefold_ui and threefold_game_kit $ver."

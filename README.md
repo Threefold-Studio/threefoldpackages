@@ -8,6 +8,8 @@ Shared Dart and Flutter packages for Threefold Studio apps and games (SOP Append
 | `packages/threefold_ui` | Dev ribbon and Dev controls, glove-size buttons, permission explainer, empty, loading and error states | Every Flutter app |
 | `packages/threefold_game_kit` | Save store with backup, lives, daily rewards and streaks, season pass, sky clock, sync client | Every game |
 
+Releases are tagged automatically: after a merge to `main`, `.github/workflows/release-tag.yml` publishes `v<RELEASE_VERSION>` if that tag does not exist yet. To release, raise `RELEASE_VERSION` and every package's `pubspec.yaml` version together in one pull request (the checks refuse a mismatch). A published tag never moves.
+
 An app depends on a package by git, pinned to a tag:
 
 ```yaml
