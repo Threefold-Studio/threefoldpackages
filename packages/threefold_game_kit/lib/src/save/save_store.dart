@@ -235,7 +235,14 @@ class SaveStore {
     final decoded = jsonDecode(raw);
     if (decoded is! Map) throw const FormatException('save is not an object');
     final env = Map<String, dynamic>.from(decoded);
-    final enveloped = !legacy && env['schema'] is int && env['data'] is Map;
+    // Two or more of the envelope's keys mean it is an envelope, and a bad
+    // one is corruption to quarantine, never a bare legacy save to reuse.
+    final looksEnveloped = !legacy &&
+        ['schema', 'savedAt', 'data'].where(env.containsKey).length >= 2;
+    if (looksEnveloped && (env['schema'] is! int || env['data'] is! Map)) {
+      throw const FormatException('save envelope is malformed');
+    }
+    final enveloped = looksEnveloped;
     var from = enveloped ? env['schema'] as int : 0;
     var data = enveloped ? Map<String, dynamic>.from(env['data'] as Map) : env;
     final savedAtMs = enveloped ? env['savedAt'] : null;

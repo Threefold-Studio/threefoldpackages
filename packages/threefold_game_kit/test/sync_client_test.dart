@@ -183,4 +183,22 @@ void main() {
     expect(c.acknowledged, isEmpty);
     expect(c.deltaFor({'level': 5}), {'level': 5});
   });
+
+  test('a sync after a reset sends its own request, not the old one',
+      () async {
+    final t = FakeTransport((b) => {'progress': b['progress']})
+      ..gate = Completer<void>();
+    final c =
+        SyncClient(transport: t, clock: clock, store: MemoryKeyValueStore());
+    final old = c.sync(progress: {'account': 'a'});
+    expect(identical(c.sync(progress: {'account': 'a'}), old), isTrue,
+        reason: 'calls before a reset still share the running request');
+    await c.resetAcknowledged();
+    final fresh = c.sync(progress: {'account': 'b'});
+    t.gate!.complete();
+    expect((await old).progress, {'account': 'a'});
+    expect((await fresh).progress, {'account': 'b'});
+    expect(t.bodies, hasLength(2));
+    expect(c.busy, isFalse);
+  });
 }

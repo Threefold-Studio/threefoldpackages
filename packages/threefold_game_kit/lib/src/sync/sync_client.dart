@@ -123,6 +123,7 @@ class SyncClient {
   /// Raised by [resetAcknowledged]; a request started before a reset never
   /// acknowledges its counters.
   int _ackEpoch = 0;
+  int _inFlightEpoch = 0;
 
   /// Counters the server has acknowledged.
   Map<String, num> get acknowledged {
@@ -166,8 +167,17 @@ class SyncClient {
     SyncMode mode = SyncMode.sync,
     Map<String, dynamic> extra = const {},
   }) {
-    return _inFlight ??= _run(progress, counters, results, mode, extra)
-        .whenComplete(() => _inFlight = null);
+    // Calls while a request is running share it, but never across a
+    // resetAcknowledged(): after an account switch the new caller sends its
+    // own request and never receives the old account's answer.
+    final running = _inFlight;
+    if (running != null && _inFlightEpoch == _ackEpoch) return running;
+    late final Future<SyncResult> f;
+    f = _run(progress, counters, results, mode, extra).whenComplete(() {
+      if (identical(_inFlight, f)) _inFlight = null;
+    });
+    _inFlightEpoch = _ackEpoch;
+    return _inFlight = f;
   }
 
   Future<SyncResult> _run(

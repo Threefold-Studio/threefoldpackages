@@ -285,4 +285,20 @@ void main() {
       expect(again.source, SaveSource.none);
     },
   );
+
+  test('a malformed envelope is quarantined and the backup is used', () async {
+    final good = jsonEncode({
+      'schema': 1,
+      'savedAt': 1,
+      'data': {'level': 9, 'coins': 1},
+    });
+    final bad = jsonEncode({'schema': '1', 'savedAt': 2, 'data': 'oops'});
+    final kv = MemoryKeyValueStore({'game.save': bad, 'game.save.backup': good});
+    // A lenient decoder that would accept the envelope as player data.
+    final got = await storeOf(kv)
+        .load((j) => Player((j['level'] as int?) ?? 1, (j['coins'] as int?) ?? 0));
+    expect(got.source, SaveSource.backup);
+    expect(got.value!.level, 9);
+    expect(storeOf(kv).quarantinedKeys.map(kv.getString), [bad]);
+  });
 }
