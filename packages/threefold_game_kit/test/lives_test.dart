@@ -148,4 +148,12 @@ void main() {
     expect(s2.lives, 6,
         reason: 'without hold the overdue timer refills to 5 first');
   });
+
+  test('fullAt counts lives already earned but not yet refilled', () {
+    final s = LivesState(lives: 3, updatedAtMs: t0);
+    expect(lives.fullAt(s, t0 + 20 * min),
+        DateTime.fromMillisecondsSinceEpoch(t0 + 30 * min));
+    expect(lives.fullAt(s, t0 + 45 * min), isNull,
+        reason: 'already full once refill runs, so no reminder');
+  });
 }

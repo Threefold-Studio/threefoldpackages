@@ -115,10 +115,12 @@ class Lives {
   /// full" reminder).
   DateTime? fullAt(LivesState s, int nowMs) {
     if (s.lives >= config.max) return null;
-    final missing = config.max - s.lives;
-    return DateTime.fromMillisecondsSinceEpoch(nowMs +
-        nextLifeIn(s, nowMs).inMilliseconds +
-        (missing - 1) * _refillMs);
+    // Counted from the refill stamp, so lives already earned but not yet
+    // claimed by refill() are not waited for twice.
+    final from = s.updatedAtMs > nowMs ? nowMs : s.updatedAtMs;
+    final full = from + (config.max - s.lives) * _refillMs;
+    if (full <= nowMs) return null;
+    return DateTime.fromMillisecondsSinceEpoch(full);
   }
 
   /// Spends one life (a lost or abandoned level). Returns false when none
