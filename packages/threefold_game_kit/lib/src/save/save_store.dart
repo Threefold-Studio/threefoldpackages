@@ -93,7 +93,7 @@ class SaveStore {
   final Map<int, SaveMigration> migrations;
 
   /// The old pre-envelope key (for example 'mygame.player.v1'), read only
-  /// when [key] and its backup hold nothing. It is never deleted.
+  /// when [key] and its backup hold nothing. Only [clear] deletes it.
   final String? legacyKey;
 
   /// Oldest quarantined copies beyond this are removed.
@@ -179,13 +179,16 @@ class SaveStore {
   Future<void> write(Map<String, dynamic> data) async {
     if (!_lastGoodKnown) {
       // Writing before load(): look at what is there now.
-      final current = store.getString(key);
-      if (current != null) {
+      // The main save if readable, else the backup if readable; anything
+      // unreadable is quarantined, so nothing is lost either way.
+      for (final k in [key, backupKey]) {
+        final current = store.getString(k);
+        if (current == null) continue;
         if (_readable(current)) {
           _lastGood = current;
-        } else {
-          await _quarantine(current);
+          break;
         }
+        await _quarantine(current);
       }
       _lastGoodKnown = true;
     }
@@ -206,11 +209,14 @@ class SaveStore {
     _lastGood = raw;
   }
 
-  /// Removes the save and its backup (for "Reset progress"). Quarantined
-  /// copies stay.
+  /// Removes the save, its backup and the legacy save (for "Reset
+  /// progress"), so a later load starts a new player. Quarantined copies
+  /// stay.
   Future<void> clear() async {
     await store.remove(key);
     await store.remove(backupKey);
+    final lk = legacyKey;
+    if (lk != null) await store.remove(lk);
     _lastGood = null;
     _lastGoodKnown = true;
   }

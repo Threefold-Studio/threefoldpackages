@@ -138,4 +138,14 @@ void main() {
     expect(empty.lives, 5);
     expect(empty.updatedAtMs, t0);
   });
+
+  test('add with hold gives the reward but no timer catch-up', () {
+    final s = LivesState(lives: 0, updatedAtMs: t0);
+    lives.add(s, 1, t0 + 120 * min, hold: true);
+    expect(s.lives, 1);
+    final s2 = LivesState(lives: 0, updatedAtMs: t0);
+    lives.add(s2, 1, t0 + 120 * min);
+    expect(s2.lives, 6,
+        reason: 'without hold the overdue timer refills to 5 first');
+  });
 }

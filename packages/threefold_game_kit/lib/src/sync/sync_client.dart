@@ -191,7 +191,9 @@ class SyncClient {
       final mid = t0.add(t1.difference(t0) ~/ 2);
       clock.onServerTime(serverTime, deviceAt: mid);
     }
-    if (sent.isNotEmpty) await _ack(sent);
+    // Fetch mode is read-only on the server, so the totals were not
+    // applied and must still be sent as a delta next time.
+    if (sent.isNotEmpty && mode != SyncMode.fetch) await _ack(sent);
     final p = res['progress'];
     return SyncResult(
       ok: true,

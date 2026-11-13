@@ -133,9 +133,11 @@ class Lives {
     return true;
   }
 
-  /// Adds [n] lives (ads, rewards), up to [LivesConfig.cap].
-  void add(LivesState s, int n, int nowMs) {
-    refill(s, nowMs);
+  /// Adds [n] lives (ads, rewards), up to [LivesConfig.cap]. Pass [hold]
+  /// (from `GameClock.holdClaims`) so a reward never brings timer catch-up
+  /// along with it while the clock is in doubt.
+  void add(LivesState s, int n, int nowMs, {bool hold = false}) {
+    refill(s, nowMs, hold: hold);
     s.lives = (s.lives + n).clamp(0, config.cap);
     if (s.lives >= config.max) s.updatedAtMs = nowMs;
   }

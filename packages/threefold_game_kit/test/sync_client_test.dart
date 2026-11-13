@@ -156,4 +156,18 @@ void main() {
       expect(await const NoopSyncTransport().send({}), isNull);
     });
   });
+
+  test('a fetch is read only, so its counters are not acknowledged', () async {
+    final t = FakeTransport((_) => {});
+    final c = SyncClient(
+      transport: t,
+      clock: clock,
+      store: MemoryKeyValueStore(),
+    );
+    await c.sync(progress: {}, counters: {'coins': 200}, mode: SyncMode.fetch);
+    expect(c.acknowledged, isEmpty);
+    await c.sync(progress: {}, counters: {'coins': 200});
+    expect(t.bodies.last['delta'], {'coins': 200});
+    expect(c.acknowledged, {'coins': 200});
+  });
 }

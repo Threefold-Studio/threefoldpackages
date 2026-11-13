@@ -237,4 +237,52 @@ void main() {
     expect(kv.getString('game.save.backup'), isNull);
     expect(s.quarantinedKeys, hasLength(1));
   });
+
+  test(
+    'writing before load() keeps a readable backup when the main is bad',
+    () async {
+      final good = jsonEncode({
+        'schema': 1,
+        'savedAt': 1,
+        'data': {'level': 9, 'coins': 1},
+      });
+      final kv = MemoryKeyValueStore({
+        'game.save': '{broken',
+        'game.save.backup': good,
+      });
+      final s = storeOf(kv);
+      await s.write(Player(10, 0).toJson());
+      expect(
+        kv.getString('game.save.backup'),
+        good,
+        reason: 'the readable backup is never thrown away',
+      );
+      expect(s.quarantinedKeys.map(kv.getString), ['{broken']);
+    },
+  );
+
+  test('writing before load() quarantines an unreadable backup too', () async {
+    final kv = MemoryKeyValueStore({'game.save.backup': 'nope'});
+    final s = storeOf(kv);
+    await s.write(Player(1, 0).toJson());
+    expect(s.quarantinedKeys.map(kv.getString), ['nope']);
+    expect(kv.getString('game.save.backup'), isNull);
+  });
+
+  test(
+    'clear also removes the legacy save, so reset starts a new player',
+    () async {
+      final kv = MemoryKeyValueStore({
+        'game.player.v1': fixture('legacy_v0.json'),
+      });
+      final s = storeOf(kv, legacyKey: 'game.player.v1');
+      expect((await s.load(Player.fromJson)).source, SaveSource.legacy);
+      await s.clear();
+      final again = await storeOf(
+        kv,
+        legacyKey: 'game.player.v1',
+      ).load(Player.fromJson);
+      expect(again.source, SaveSource.none);
+    },
+  );
 }
