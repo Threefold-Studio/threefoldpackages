@@ -1,0 +1,38 @@
+{
+  "_about": "Shared golden cases for the copy check (SOP R10.10). kinds lists the dashes found, in order; an empty list means clean. Escapes are written as they appear in source code.",
+  "findDashes": [
+    {"text": "Doors open at 6:30, see you there.", "rules": "app", "kinds": []},
+    {"text": "Doors open at 6:30 \u2014 see you there.", "rules": "app", "kinds": ["emDash"]},
+    {"text": "6:30\u20137:30 PM", "rules": "app", "kinds": ["enDash"]},
+    {"text": "Grades K \u2013 2", "rules": "app", "kinds": ["enDash"]},
+    {"text": "Source has \\u2014 in it", "rules": "app", "kinds": ["emDash"]},
+    {"text": "Source has \\u{2014} in it", "rules": "app", "kinds": ["emDash"]},
+    {"text": "Pricing &mdash; simple", "rules": "app", "kinds": ["emDash"]},
+    {"text": "Pricing &MDASH; simple", "rules": "app", "kinds": ["emDash"]},
+    {"text": "Range &ndash; here", "rules": "app", "kinds": ["enDash"]},
+    {"text": "Bar \u2015 here", "rules": "app", "kinds": ["otherDash"]},
+    {"text": "A one-time purchase, call 555-0134.", "rules": "app", "kinds": []},
+    {"text": "Fast - and free", "rules": "app", "kinds": []},
+    {"text": "Fast - and free", "rules": "website", "kinds": ["spacedHyphen"]},
+    {"text": "Fast -- and free", "rules": "website", "kinds": ["doubleHyphen"]},
+    {"text": "A one-time purchase, call 555-0134.", "rules": "website", "kinds": []},
+    {"text": "-5 degrees", "rules": "website", "kinds": []},
+    {"text": "Wait \u2014 6\u20137 PM", "rules": "website", "kinds": ["emDash", "enDash"]}
+  ],
+  "titleCase": [
+    {"in": "send my inquiry", "out": "Send My Inquiry"},
+    {"in": "delete my account", "out": "Delete My Account"},
+    {"in": "terms of service", "out": "Terms of Service"},
+    {"in": "the end of the line", "out": "The End of the Line"},
+    {"in": "what are you thinking of", "out": "What Are You Thinking Of"},
+    {"in": "open in iPhone settings", "out": "Open in iPhone Settings"},
+    {"in": "PTO card", "out": "PTO Card"}
+  ],
+  "plural": [
+    {"n": 1, "one": "ticket", "out": "1 ticket"},
+    {"n": 2, "one": "ticket", "out": "2 tickets"},
+    {"n": 0, "one": "ticket", "out": "0 tickets"},
+    {"n": 4398, "one": "ticket", "out": "4,398 tickets"},
+    {"n": 3, "one": "child", "many": "children", "out": "3 children"}
+  ]
+}

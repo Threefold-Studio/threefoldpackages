@@ -1,0 +1,21 @@
+name: threefold_ui
+description: >-
+  Threefold Studio shared Flutter widgets: the DEV ribbon and Dev controls,
+  glove-size buttons, a permission explainer, and empty, loading and error
+  states. No brand baked in; apps pass their own text and colours.
+version: 0.1.0
+publish_to: none
+repository: https://github.com/Threefold-Studio/threefoldpackages
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
