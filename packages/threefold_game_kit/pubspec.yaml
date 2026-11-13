@@ -1,0 +1,22 @@
+name: threefold_game_kit
+description: >-
+  Shared game systems for Threefold Studio puzzle games: one clock with dev
+  time travel and server skew, a save store with schema, backup and
+  quarantine, lives, daily rewards and streaks, season pass, sky clock and a
+  sync client. Games pass in every name, number and reward.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.24.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
