@@ -1,0 +1,31 @@
+# The pull request checks the standing merge approval relies on (SOP 0.11, R4.11):
+# analyze and test every package (CLAUDE.md rule 2).
+name: Checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: 3.50.0, channel: stable }
+      - name: Versions match RELEASE_VERSION
+        run: |
+          set -euo pipefail
+          ver=$(tr -d '[:space:]' < RELEASE_VERSION)
+          for p in packages/*/pubspec.yaml; do
+            got=$(sed -nE 's/^version:[[:space:]]*([^[:space:]]+).*/\1/p' "$p")
+            [ "$got" = "$ver" ] || { echo "$p is $got, RELEASE_VERSION is $ver" >&2; exit 1; }
+          done
+      - name: threefold_kit (pure Dart)
+        working-directory: packages/threefold_kit
+        run: dart pub get && dart analyze --fatal-infos && dart test
+      - name: threefold_ui
+        working-directory: packages/threefold_ui
+        run: flutter pub get && dart analyze --fatal-infos && flutter test
+      - name: threefold_game_kit
+        working-directory: packages/threefold_game_kit
+        run: flutter pub get && dart analyze --fatal-infos && flutter test
