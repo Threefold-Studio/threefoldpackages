@@ -29,3 +29,6 @@ jobs:
       - name: threefold_game_kit
         working-directory: packages/threefold_game_kit
         run: flutter pub get && dart analyze --fatal-infos && flutter test
+  secrets:
+    uses: Threefold-Studio/studiotemplate/.github/workflows/shared-secret-scan.yml@v1
+    secrets: inherit   # GITLEAKS_LICENSE (organization secret, SOP R4.17)
