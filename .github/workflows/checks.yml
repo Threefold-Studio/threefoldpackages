@@ -5,6 +5,8 @@ on:
   pull_request:
   push:
     branches: [main]
+permissions:
+  contents: read   # checks only read the code
 jobs:
   packages:
     runs-on: ubuntu-latest
